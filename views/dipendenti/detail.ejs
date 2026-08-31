@@ -1,0 +1,150 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<% const badgeMap = { candidato: 'badge-gray', in_onboarding: 'badge-amber', attivo: 'badge-green', cessato: 'badge-red' }; %>
+<% const labelMap = { candidato: 'Candidato', in_onboarding: 'In onboarding', attivo: 'Attivo', cessato: 'Cessato' }; %>
+
+<div class="detail-header" style="margin-bottom: 20px;">
+  <div>
+    <h1>
+      <span class="avatar avatar-lg"><%= (employee.nome[0] || '').toUpperCase() %><%= (employee.cognome[0] || '').toUpperCase() %></span>
+      <%= employee.nome %> <%= employee.cognome %>
+      <span class="badge <%= badgeMap[employee.stato] || 'badge-gray' %>"><%= labelMap[employee.stato] || employee.stato %></span>
+      <% if (azienda) { %><span class="company-chip-sm"><%= azienda.nome %></span><% } %>
+    </h1>
+    <p class="subtitle"><%= employee.ruolo || 'Ruolo non specificato' %><% if (employee.dipartimento) { %> · <%= employee.dipartimento %><% } %></p>
+  </div>
+  <div class="actions-row" style="margin-top:0;">
+    <a href="/dipendenti/<%= employee.id %>/modifica" class="btn btn-secondary">Modifica</a>
+    <form class="inline" method="post" action="/dipendenti/<%= employee.id %>/elimina" onsubmit="return confirm('Eliminare definitivamente questa scheda? L\'operazione non è reversibile.');">
+      <button type="submit" class="btn btn-danger">Elimina</button>
+    </form>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h2>Dati anagrafici</h2>
+    <ul class="meta-list">
+      <li><span class="k">Email</span><span><%= employee.email || '—' %></span></li>
+      <li><span class="k">Telefono</span><span><%= employee.telefono || '—' %></span></li>
+      <li><span class="k">Tipo contratto</span><span><%= employee.tipo_contratto || '—' %></span></li>
+      <li><span class="k">Data candidatura</span><span><%= employee.data_candidatura ? dayjs(employee.data_candidatura).format('DD/MM/YYYY') : '—' %></span></li>
+      <li><span class="k">Data assunzione</span><span><%= employee.data_assunzione ? dayjs(employee.data_assunzione).format('DD/MM/YYYY') : '—' %></span></li>
+      <li><span class="k">Data fine contratto</span><span><%= employee.data_fine_contratto ? dayjs(employee.data_fine_contratto).format('DD/MM/YYYY') : '—' %></span></li>
+      <li><span class="k">Stipendio lordo</span><span><%= employee.stipendio_lordo ? '€ ' + Number(employee.stipendio_lordo).toFixed(2) : '—' %></span></li>
+      <li><span class="k">IBAN</span><span><%= employee.iban || '—' %></span></li>
+    </ul>
+    <% if (employee.note) { %>
+      <p style="margin-top:12px; font-size:13.5px; color:var(--text-muted);"><%= employee.note %></p>
+    <% } %>
+  </div>
+
+  <div class="card">
+    <h2>Documenti</h2>
+    <% if (documents.length === 0) { %>
+      <div class="empty-state">Nessun documento caricato.</div>
+    <% } else { %>
+      <table>
+        <tbody>
+          <% documents.forEach(d => { %>
+            <tr>
+              <td><%= d.original_name %><br/><span style="color:var(--text-muted); font-size:11.5px;"><%= d.tipo %> · <%= dayjs(d.uploaded_at).format('DD/MM/YYYY') %></span></td>
+              <td style="text-align:right; white-space:nowrap;">
+                <a href="/dipendenti/<%= employee.id %>/documenti/<%= d.id %>/scarica">Scarica</a>
+                <form class="inline" method="post" action="/dipendenti/<%= employee.id %>/documenti/<%= d.id %>/elimina" onsubmit="return confirm('Eliminare il documento?');" style="margin-left:8px;">
+                  <button type="submit" class="btn btn-sm btn-danger">Elimina</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+
+    <form class="upload-row" method="post" action="/dipendenti/<%= employee.id %>/documenti" enctype="multipart/form-data">
+      <select name="tipo" style="width:auto;">
+        <option value="cv">CV</option>
+        <option value="contratto">Contratto</option>
+        <option value="documento_identita">Documento identità</option>
+        <option value="codice_fiscale">Codice fiscale</option>
+        <option value="altro">Altro</option>
+      </select>
+      <input type="file" name="documento" required style="width:auto; flex:1;" />
+      <button type="submit" class="btn btn-sm">Carica</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Checklist assunzione</h2>
+  <% if (checklist.length === 0) { %>
+    <div class="empty-state">Nessuna voce in checklist.</div>
+  <% } else { %>
+    <% checklist.forEach(item => { %>
+      <div class="checklist-item <%= item.completato ? 'done' : '' %>">
+        <form method="post" action="/dipendenti/<%= employee.id %>/checklist/<%= item.id %>/toggle">
+          <input type="checkbox" onchange="this.form.submit()" <%= item.completato ? 'checked' : '' %> />
+        </form>
+        <span class="text"><%= item.testo %></span>
+        <% if (item.scadenza) { %><span class="due">entro <%= dayjs(item.scadenza).format('DD/MM/YYYY') %></span><% } %>
+        <form class="inline" method="post" action="/dipendenti/<%= employee.id %>/checklist/<%= item.id %>/elimina">
+          <button type="submit" class="btn btn-sm btn-secondary">✕</button>
+        </form>
+      </div>
+    <% }) %>
+  <% } %>
+
+  <form class="upload-row" method="post" action="/dipendenti/<%= employee.id %>/checklist">
+    <input type="text" name="testo" placeholder="Nuova voce checklist..." required style="flex:1;" />
+    <input type="date" name="scadenza" style="width:160px;" />
+    <button type="submit" class="btn btn-sm">Aggiungi</button>
+  </form>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h2>Storico buste paga / bonifici</h2>
+    <% if (payroll.length === 0) { %>
+      <div class="empty-state">Nessuna busta paga registrata. <a href="/buste">Vai a Buste paga →</a></div>
+    <% } else { %>
+      <table>
+        <thead><tr><th>Periodo</th><th>Netto</th><th>Stato</th><th></th></tr></thead>
+        <tbody>
+          <% const MESI = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic']; %>
+          <% payroll.forEach(p => { %>
+            <tr>
+              <td><%= MESI[p.mese - 1] %> <%= p.anno %></td>
+              <td><%= p.importo_netto ? '€ ' + Number(p.importo_netto).toFixed(2) : '—' %></td>
+              <td><span class="badge <%= p.stato === 'pagato' ? 'badge-green' : 'badge-amber' %>"><%= p.stato === 'pagato' ? 'Pagato' : 'Da pagare' %></span></td>
+              <td style="text-align:right;">
+                <% if (p.busta_filename) { %><a href="/buste/<%= employee.id %>/<%= p.anno %>/<%= p.mese %>/scarica">Busta paga</a><% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+
+  <div class="card">
+    <h2>Eventi in calendario</h2>
+    <% if (events.length === 0) { %>
+      <div class="empty-state">Nessun evento collegato.</div>
+    <% } else { %>
+      <table>
+        <tbody>
+          <% events.forEach(ev => { %>
+            <tr>
+              <td><%= dayjs(ev.data).format('DD/MM/YYYY') %></td>
+              <td><%= ev.titolo %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+    <div style="margin-top:10px;"><a href="/calendario">Vai al calendario →</a></div>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

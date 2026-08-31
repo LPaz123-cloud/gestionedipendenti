@@ -1,0 +1,102 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="page-header">
+  <div>
+    <h1>Calendario operativo</h1>
+    <p class="subtitle">Colloqui, inizio contratti, scadenze</p>
+  </div>
+  <div class="month-nav">
+    <a href="/calendario?mese=<%= prevMonth %>" class="btn btn-secondary btn-sm">← Mese prec.</a>
+    <strong style="text-transform:capitalize;"><%= monthLabel %></strong>
+    <a href="/calendario?mese=<%= nextMonth %>" class="btn btn-secondary btn-sm">Mese succ. →</a>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns: 2.2fr 1fr;">
+  <div class="card">
+    <div class="calendar-grid" style="margin-bottom:6px;">
+      <% ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].forEach(d => { %>
+        <div class="calendar-head"><%= d %></div>
+      <% }) %>
+    </div>
+    <div class="calendar-grid">
+      <% cells.forEach(day => { %>
+        <% if (!day) { %>
+          <div class="calendar-cell empty"></div>
+        <% } else { %>
+          <% const dstr = day.format('YYYY-MM-DD'); %>
+          <div class="calendar-cell <%= dstr === todayStr ? 'today' : '' %>">
+            <div class="daynum"><%= day.date() %></div>
+            <% (eventsByDay[dstr] || []).forEach(ev => { %>
+              <span class="calendar-event tipo-<%= ev.tipo %>" title="<%= ev.titolo %>">
+                <%= ev.ora ? ev.ora + ' ' : '' %><%= ev.titolo.length > 22 ? ev.titolo.slice(0, 22) + '…' : ev.titolo %>
+              </span>
+            <% }) %>
+          </div>
+        <% } %>
+      <% }) %>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>Nuovo evento</h2>
+      <form method="post" action="/calendario">
+        <div class="field" style="margin-bottom:10px;">
+          <label>Titolo *</label>
+          <input type="text" name="titolo" required />
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>Tipo</label>
+          <select name="tipo">
+            <option value="colloquio">Colloquio</option>
+            <option value="inizio_contratto">Inizio contratto</option>
+            <option value="scadenza">Scadenza documento</option>
+            <option value="altro" selected>Altro</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>Data *</label>
+          <input type="date" name="data" required />
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>Ora</label>
+          <input type="time" name="ora" />
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>Collegato a</label>
+          <select name="employee_id">
+            <option value="">—</option>
+            <% employees.forEach(e => { %>
+              <option value="<%= e.id %>"><%= e.nome %> <%= e.cognome %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:12px;">
+          <label>Note</label>
+          <textarea name="note"></textarea>
+        </div>
+        <button type="submit" class="btn" style="width:100%;">Aggiungi evento</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Prossimi eventi</h2>
+      <% if (prossimi.length === 0) { %>
+        <div class="empty-state">Nessun evento futuro.</div>
+      <% } else { %>
+        <% prossimi.forEach(ev => { %>
+          <div class="checklist-item">
+            <span class="text"><%= dayjs(ev.data).format('DD/MM') %> — <%= ev.titolo %><% if (ev.emp_nome) { %> <span style="color:var(--text-muted);">(<%= ev.emp_nome %> <%= ev.emp_cognome %>)</span><% } %></span>
+            <form class="inline" method="post" action="/calendario/<%= ev.id %>/elimina">
+              <button type="submit" class="btn btn-sm btn-secondary">✕</button>
+            </form>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/foot') %>

@@ -1,0 +1,108 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<div class="page-header">
+  <div>
+    <h1><%= employee ? 'Modifica scheda' : 'Nuovo candidato/dipendente' %></h1>
+    <p class="subtitle">Dati anagrafici e contrattuali</p>
+  </div>
+</div>
+
+<div class="card">
+  <form method="post" action="<%= employee ? '/dipendenti/' + employee.id : '/dipendenti' %>">
+    <div class="form-grid">
+      <div class="field full">
+        <label>Azienda</label>
+        <select name="azienda_id">
+          <option value="">— Nessuna / da definire —</option>
+          <% aziende.forEach(a => { %>
+            <option value="<%= a.id %>" <%= employee && String(employee.azienda_id) === String(a.id) ? 'selected' : '' %>><%= a.nome %></option>
+          <% }) %>
+        </select>
+        <% if (aziende.length === 0) { %>
+          <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Nessuna azienda ancora creata. <a href="/aziende">Aggiungine una →</a></p>
+        <% } %>
+      </div>
+      <div class="field">
+        <label>Nome *</label>
+        <input type="text" name="nome" required value="<%= employee ? employee.nome : '' %>" />
+      </div>
+      <div class="field">
+        <label>Cognome *</label>
+        <input type="text" name="cognome" required value="<%= employee ? employee.cognome : '' %>" />
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" name="email" value="<%= employee && employee.email ? employee.email : '' %>" />
+      </div>
+      <div class="field">
+        <label>Telefono</label>
+        <input type="text" name="telefono" value="<%= employee && employee.telefono ? employee.telefono : '' %>" />
+      </div>
+      <div class="field">
+        <label>Ruolo</label>
+        <input type="text" name="ruolo" value="<%= employee && employee.ruolo ? employee.ruolo : '' %>" />
+      </div>
+      <div class="field">
+        <label>Dipartimento</label>
+        <input type="text" name="dipartimento" value="<%= employee && employee.dipartimento ? employee.dipartimento : '' %>" />
+      </div>
+      <div class="field">
+        <label>Stato</label>
+        <select name="stato">
+          <% const stati = [['candidato','Candidato'], ['in_onboarding','In onboarding'], ['attivo','Attivo'], ['cessato','Cessato']]; %>
+          <% stati.forEach(([val, label]) => { %>
+            <option value="<%= val %>" <%= employee && employee.stato === val ? 'selected' : '' %>><%= label %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tipo contratto</label>
+        <select name="tipo_contratto">
+          <% const tipi = ['Indeterminato', 'Determinato', 'Apprendistato', 'Stage/Tirocinio', 'Partita IVA', 'Co.co.co.']; %>
+          <option value="">—</option>
+          <% tipi.forEach(t => { %>
+            <option value="<%= t %>" <%= employee && employee.tipo_contratto === t ? 'selected' : '' %>><%= t %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="field">
+        <label>Data candidatura</label>
+        <input type="date" name="data_candidatura" value="<%= employee && employee.data_candidatura ? employee.data_candidatura : '' %>" />
+      </div>
+      <div class="field">
+        <label>Data assunzione</label>
+        <input type="date" name="data_assunzione" value="<%= employee && employee.data_assunzione ? employee.data_assunzione : '' %>" />
+      </div>
+      <div class="field">
+        <label>Data fine contratto</label>
+        <input type="date" name="data_fine_contratto" value="<%= employee && employee.data_fine_contratto ? employee.data_fine_contratto : '' %>" />
+      </div>
+      <div class="field">
+        <label>Stipendio lordo mensile (€)</label>
+        <input type="number" step="0.01" name="stipendio_lordo" value="<%= employee && employee.stipendio_lordo !== null && employee.stipendio_lordo !== undefined ? employee.stipendio_lordo : '' %>" />
+      </div>
+      <div class="field">
+        <label>IBAN</label>
+        <input type="text" name="iban" value="<%= employee && employee.iban ? employee.iban : '' %>" />
+      </div>
+      <div class="field full">
+        <label>Note</label>
+        <textarea name="note"><%= employee && employee.note ? employee.note : '' %></textarea>
+      </div>
+      <% if (!employee) { %>
+        <div class="field full checkbox-row">
+          <input type="checkbox" name="crea_checklist" id="crea_checklist" checked />
+          <label for="crea_checklist" style="margin:0;">Crea automaticamente la checklist di onboarding standard</label>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="actions-row">
+      <button type="submit" class="btn">Salva</button>
+      <a href="<%= employee ? '/dipendenti/' + employee.id : '/dipendenti' %>" class="btn btn-secondary">Annulla</a>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/foot') %>

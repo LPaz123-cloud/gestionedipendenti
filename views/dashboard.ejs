@@ -1,0 +1,104 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="subtitle">Panoramica generale delle assunzioni</p>
+  </div>
+  <a href="/dipendenti/nuovo" class="btn">+ Nuovo candidato/dipendente</a>
+</div>
+
+<div class="grid grid-3">
+  <div class="card stat" style="border-top:3px solid var(--green);">
+    <div class="num"><%= stats.attivi %></div>
+    <div class="label">Dipendenti attivi</div>
+  </div>
+  <div class="card stat" style="border-top:3px solid var(--amber);">
+    <div class="num"><%= stats.inOnboarding %></div>
+    <div class="label">In onboarding</div>
+  </div>
+  <div class="card stat" style="border-top:3px solid var(--text-muted);">
+    <div class="num"><%= stats.candidati %></div>
+    <div class="label">Candidati in pipeline</div>
+  </div>
+</div>
+
+<div class="grid grid-3" style="margin-top: -2px;">
+  <div class="card stat" style="border-top:3px solid var(--green);">
+    <div class="num"><%= stats.pagatiMese %></div>
+    <div class="label">Stipendi pagati questo mese</div>
+  </div>
+  <div class="card stat" style="border-top:3px solid var(--amber);">
+    <div class="num"><%= stats.daPagareMese %></div>
+    <div class="label">Stipendi da pagare questo mese</div>
+  </div>
+  <div class="card stat" style="border-top:3px solid var(--primary);">
+    <div class="num"><%= stats.numAziende %></div>
+    <div class="label">Aziende gestite</div>
+  </div>
+</div>
+
+<% if (perAzienda.length > 0) { %>
+  <div class="card">
+    <h2>Ripartizione per azienda</h2>
+    <table>
+      <thead><tr><th>Azienda</th><th>Attivi</th><th>Candidati</th><th>Totale</th><th></th></tr></thead>
+      <tbody>
+        <% perAzienda.forEach((a, i) => { %>
+          <tr>
+            <td><span class="company-chip company-color-<%= i % 6 %>"><%= a.nome %></span></td>
+            <td><%= a.attivi %></td>
+            <td><%= a.candidati %></td>
+            <td><%= a.totale %></td>
+            <td style="text-align:right;"><a href="/dipendenti?azienda=<%= a.id %>">Apri →</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h2>Prossimi 14 giorni</h2>
+    <% if (prossimiEventi.length === 0) { %>
+      <div class="empty-state">Nessun evento in programma.</div>
+    <% } else { %>
+      <table>
+        <tbody>
+          <% prossimiEventi.forEach(ev => { %>
+            <tr>
+              <td style="white-space:nowrap;"><%= dayjs(ev.data).format('DD/MM') %><% if (ev.ora) { %> <%= ev.ora %><% } %></td>
+              <td>
+                <%= ev.titolo %>
+                <% if (ev.emp_nome) { %><br/><span style="color:var(--text-muted); font-size:12px;"><%= ev.emp_nome %> <%= ev.emp_cognome %></span><% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+    <div style="margin-top:12px;"><a href="/calendario">Vedi calendario completo →</a></div>
+  </div>
+
+  <div class="card">
+    <h2>Checklist aperte</h2>
+    <% if (checklistAperte.length === 0) { %>
+      <div class="empty-state">Tutte le checklist sono complete.</div>
+    <% } else { %>
+      <table>
+        <tbody>
+          <% checklistAperte.forEach(c => { %>
+            <tr>
+              <td><%= c.testo %><br/><span style="color:var(--text-muted); font-size:12px;"><%= c.emp_nome %> <%= c.emp_cognome %></span></td>
+              <td style="white-space:nowrap; text-align:right;"><a href="/dipendenti/<%= c.employee_id %>">Apri →</a></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>
+
+<%- include('partials/foot') %>

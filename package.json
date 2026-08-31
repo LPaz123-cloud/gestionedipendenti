@@ -1,0 +1,20 @@
+{
+  "name": "gestionale-assunzioni",
+  "version": "1.0.0",
+  "description": "Gestionale web per assunzioni: anagrafica, checklist, calendario operativo, buste paga",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch-path=server.js --watch-path=src --watch-path=routes --watch-path=views --watch-path=public server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dayjs": "^1.11.10",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.9",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "method-override": "^3.0.0",
+    "multer": "^2.0.0"
+  }
+}

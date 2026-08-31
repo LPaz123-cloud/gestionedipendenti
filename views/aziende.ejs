@@ -1,0 +1,74 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="page-header">
+  <div>
+    <h1>Aziende</h1>
+    <p class="subtitle">Le società sotto cui possono essere registrate le assunzioni</p>
+  </div>
+</div>
+
+<% if (typeof errore !== 'undefined' && errore) { %>
+  <div class="error-msg" style="margin-bottom:16px;"><%= errore %></div>
+<% } %>
+
+<div class="grid" style="grid-template-columns: 1fr 1.4fr;">
+  <div class="card">
+    <h2>Nuova azienda</h2>
+    <form method="post" action="/aziende">
+      <div class="field" style="margin-bottom:10px;">
+        <label>Nome azienda *</label>
+        <input type="text" name="nome" required />
+      </div>
+      <div class="field" style="margin-bottom:10px;">
+        <label>Partita IVA</label>
+        <input type="text" name="partita_iva" />
+      </div>
+      <div class="field" style="margin-bottom:12px;">
+        <label>Note</label>
+        <textarea name="note"></textarea>
+      </div>
+      <button type="submit" class="btn" style="width:100%;">Aggiungi azienda</button>
+    </form>
+  </div>
+
+  <div>
+    <% if (aziende.length === 0) { %>
+      <div class="card"><div class="empty-state">Nessuna azienda registrata.</div></div>
+    <% } %>
+    <% aziende.forEach((a, i) => { %>
+      <div class="card">
+        <form method="post" action="/aziende/<%= a.id %>">
+          <div class="detail-header" style="margin-bottom:12px;">
+            <span class="company-chip company-color-<%= i % 6 %>"><%= a.nome %></span>
+            <span class="badge badge-gray"><%= a.num_persone %> person<%= a.num_persone === 1 ? 'a' : 'e' %></span>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Nome azienda</label>
+              <input type="text" name="nome" value="<%= a.nome %>" required />
+            </div>
+            <div class="field">
+              <label>Partita IVA</label>
+              <input type="text" name="partita_iva" value="<%= a.partita_iva || '' %>" />
+            </div>
+            <div class="field full">
+              <label>Note</label>
+              <textarea name="note"><%= a.note || '' %></textarea>
+            </div>
+          </div>
+          <div class="actions-row">
+            <button type="submit" class="btn btn-sm">Salva</button>
+          </div>
+        </form>
+        <% if (a.num_persone === 0) { %>
+          <form method="post" action="/aziende/<%= a.id %>/elimina" onsubmit="return confirm('Eliminare questa azienda?');" style="margin-top:6px;">
+            <button type="submit" class="btn btn-sm btn-danger">Elimina azienda</button>
+          </form>
+        <% } %>
+      </div>
+    <% }) %>
+  </div>
+</div>
+
+<%- include('partials/foot') %>

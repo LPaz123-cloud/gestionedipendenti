@@ -1,0 +1,71 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<div class="page-header">
+  <div>
+    <h1>Anagrafica</h1>
+    <p class="subtitle">Candidati, dipendenti e cessati</p>
+  </div>
+  <a href="/dipendenti/nuovo" class="btn">+ Nuovo candidato/dipendente</a>
+</div>
+
+<div class="tag-list">
+  <a class="tag-filter <%= statoFiltro === '' ? 'active' : '' %>" href="/dipendenti?azienda=<%= aziendaFiltro %>">Tutti</a>
+  <a class="tag-filter <%= statoFiltro === 'candidato' ? 'active' : '' %>" href="/dipendenti?stato=candidato&azienda=<%= aziendaFiltro %>">Candidati</a>
+  <a class="tag-filter <%= statoFiltro === 'in_onboarding' ? 'active' : '' %>" href="/dipendenti?stato=in_onboarding&azienda=<%= aziendaFiltro %>">In onboarding</a>
+  <a class="tag-filter <%= statoFiltro === 'attivo' ? 'active' : '' %>" href="/dipendenti?stato=attivo&azienda=<%= aziendaFiltro %>">Attivi</a>
+  <a class="tag-filter <%= statoFiltro === 'cessato' ? 'active' : '' %>" href="/dipendenti?stato=cessato&azienda=<%= aziendaFiltro %>">Cessati</a>
+</div>
+
+<% if (aziende.length > 0) { %>
+  <div class="tag-list">
+    <a class="tag-filter <%= aziendaFiltro === '' ? 'active' : '' %>" href="/dipendenti?stato=<%= statoFiltro %>">Tutte le aziende</a>
+    <% aziende.forEach(a => { %>
+      <a class="tag-filter <%= String(aziendaFiltro) === String(a.id) ? 'active' : '' %>" href="/dipendenti?stato=<%= statoFiltro %>&azienda=<%= a.id %>"><%= a.nome %></a>
+    <% }) %>
+  </div>
+<% } %>
+
+<div class="card">
+  <% if (employees.length === 0) { %>
+    <div class="empty-state">Nessun record trovato.</div>
+  <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Azienda</th>
+          <th>Ruolo</th>
+          <th>Dipartimento</th>
+          <th>Stato</th>
+          <th>Data assunzione</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% employees.forEach(e => { %>
+          <tr>
+            <td>
+              <div class="person-cell">
+                <span class="avatar"><%= (e.nome[0] || '').toUpperCase() %><%= (e.cognome[0] || '').toUpperCase() %></span>
+                <a href="/dipendenti/<%= e.id %>"><%= e.nome %> <%= e.cognome %></a>
+              </div>
+            </td>
+            <td><% if (e.azienda_nome) { %><span class="company-chip-sm"><%= e.azienda_nome %></span><% } else { %>—<% } %></td>
+            <td><%= e.ruolo || '—' %></td>
+            <td><%= e.dipartimento || '—' %></td>
+            <td>
+              <% const badgeMap = { candidato: 'badge-gray', in_onboarding: 'badge-amber', attivo: 'badge-green', cessato: 'badge-red' }; %>
+              <% const labelMap = { candidato: 'Candidato', in_onboarding: 'In onboarding', attivo: 'Attivo', cessato: 'Cessato' }; %>
+              <span class="badge <%= badgeMap[e.stato] || 'badge-gray' %>"><%= labelMap[e.stato] || e.stato %></span>
+            </td>
+            <td><%= e.data_assunzione ? dayjs(e.data_assunzione).format('DD/MM/YYYY') : '—' %></td>
+            <td style="text-align:right;"><a href="/dipendenti/<%= e.id %>">Apri →</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+
+<%- include('../partials/foot') %>

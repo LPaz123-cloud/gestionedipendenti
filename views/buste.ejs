@@ -1,0 +1,88 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="page-header">
+  <div>
+    <h1>Buste paga &amp; bonifici</h1>
+    <p class="subtitle">Gestione mensile di stipendi, bonifici e buste paga</p>
+  </div>
+  <div class="month-nav">
+    <a href="/buste?anno=<%= prevAnno %>&mese=<%= prevMese %>&azienda=<%= aziendaFiltro %>" class="btn btn-secondary btn-sm">← Mese prec.</a>
+    <strong><%= meseLabel %> <%= anno %></strong>
+    <a href="/buste?anno=<%= nextAnno %>&mese=<%= nextMese %>&azienda=<%= aziendaFiltro %>" class="btn btn-secondary btn-sm">Mese succ. →</a>
+  </div>
+</div>
+
+<% if (aziende.length > 0) { %>
+  <div class="tag-list">
+    <a class="tag-filter <%= aziendaFiltro === '' ? 'active' : '' %>" href="/buste?anno=<%= anno %>&mese=<%= mese %>">Tutte le aziende</a>
+    <% aziende.forEach(a => { %>
+      <a class="tag-filter <%= String(aziendaFiltro) === String(a.id) ? 'active' : '' %>" href="/buste?anno=<%= anno %>&mese=<%= mese %>&azienda=<%= a.id %>"><%= a.nome %></a>
+    <% }) %>
+  </div>
+<% } %>
+
+<% if (righe.length === 0) { %>
+  <div class="card"><div class="empty-state">Nessun dipendente attivo. Aggiungine uno dall'anagrafica.</div></div>
+<% } %>
+
+<% righe.forEach(({ employee, payroll }) => { %>
+  <div class="card">
+    <div class="detail-header">
+      <div>
+        <h2 style="margin-bottom:2px;">
+          <a href="/dipendenti/<%= employee.id %>"><%= employee.nome %> <%= employee.cognome %></a>
+          <% if (employee.azienda_nome) { %><span class="company-chip-sm"><%= employee.azienda_nome %></span><% } %>
+        </h2>
+        <p class="subtitle" style="margin:0;"><%= employee.ruolo || '—' %></p>
+      </div>
+      <span class="badge <%= payroll && payroll.stato === 'pagato' ? 'badge-green' : 'badge-amber' %>">
+        <%= payroll && payroll.stato === 'pagato' ? 'Pagato' : 'Da pagare' %>
+      </span>
+    </div>
+
+    <form method="post" action="/buste/<%= employee.id %>" enctype="multipart/form-data" style="margin-top:14px;">
+      <input type="hidden" name="anno" value="<%= anno %>" />
+      <input type="hidden" name="mese" value="<%= mese %>" />
+      <div class="form-grid">
+        <div class="field">
+          <label>Importo lordo (€)</label>
+          <input type="number" step="0.01" name="importo_lordo" value="<%= payroll && payroll.importo_lordo !== null ? payroll.importo_lordo : (employee.stipendio_lordo || '') %>" />
+        </div>
+        <div class="field">
+          <label>Importo netto / bonifico (€)</label>
+          <input type="number" step="0.01" name="importo_netto" value="<%= payroll && payroll.importo_netto !== null ? payroll.importo_netto : '' %>" />
+        </div>
+        <div class="field">
+          <label>Data bonifico</label>
+          <input type="date" name="data_bonifico" value="<%= payroll && payroll.data_bonifico ? payroll.data_bonifico : '' %>" />
+        </div>
+        <div class="field">
+          <label>Stato</label>
+          <select name="stato">
+            <option value="da_pagare" <%= !payroll || payroll.stato === 'da_pagare' ? 'selected' : '' %>>Da pagare</option>
+            <option value="pagato" <%= payroll && payroll.stato === 'pagato' ? 'selected' : '' %>>Pagato</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>Note</label>
+          <input type="text" name="note" value="<%= payroll && payroll.note ? payroll.note : '' %>" />
+        </div>
+        <div class="field">
+          <label>Carica busta paga (PDF)</label>
+          <input type="file" name="busta" accept="application/pdf,image/*" />
+        </div>
+        <div class="field" style="align-self:end;">
+          <% if (payroll && payroll.busta_filename) { %>
+            <a href="/buste/<%= employee.id %>/<%= anno %>/<%= mese %>/scarica" class="btn btn-secondary btn-sm">Scarica busta attuale</a>
+          <% } %>
+        </div>
+      </div>
+      <div class="actions-row">
+        <button type="submit" class="btn btn-sm">Salva</button>
+      </div>
+    </form>
+  </div>
+<% }) %>
+
+<%- include('partials/foot') %>

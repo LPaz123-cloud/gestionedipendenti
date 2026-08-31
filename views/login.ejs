@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Accedi · Gestionale Assunzioni</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/public/css/style.css" />
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-box">
+      <div class="brand-mark">GA</div>
+      <h1>Gestionale Assunzioni</h1>
+      <p class="login-sub">Accedi per gestire le assunzioni</p>
+      <% if (error) { %>
+        <div class="error-msg"><%= error %></div>
+      <% } %>
+      <form method="post" action="/login">
+        <div class="field">
+          <label>Utente</label>
+          <input type="text" name="username" autofocus required />
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label>Password</label>
+          <input type="password" name="password" required />
+        </div>
+        <div class="actions-row">
+          <button type="submit" class="btn" style="width:100%;">Accedi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
