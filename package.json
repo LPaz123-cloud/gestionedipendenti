@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Gestionale web per assunzioni: anagrafica, checklist, calendario operativo, buste paga",
   "main": "server.js",
+  "engines": {
+    "node": ">=22.5.0"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch-path=server.js --watch-path=src --watch-path=routes --watch-path=views --watch-path=public server.js"
