@@ -7,8 +7,8 @@
     "node": ">=22.5.0"
   },
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch-path=server.js --watch-path=src --watch-path=routes --watch-path=views --watch-path=public server.js"
+    "start": "node --experimental-sqlite server.js",
+    "dev": "node --experimental-sqlite --watch-path=server.js --watch-path=src --watch-path=routes --watch-path=views --watch-path=public server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
