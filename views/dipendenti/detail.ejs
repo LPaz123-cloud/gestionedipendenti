@@ -118,7 +118,7 @@
               <td><%= p.importo_netto ? '€ ' + Number(p.importo_netto).toFixed(2) : '—' %></td>
               <td><span class="badge <%= p.stato === 'pagato' ? 'badge-green' : 'badge-amber' %>"><%= p.stato === 'pagato' ? 'Pagato' : 'Da pagare' %></span></td>
               <td style="text-align:right;">
-                <% if (p.busta_filename) { %><a href="/buste/<%= employee.id %>/<%= p.anno %>/<%= p.mese %>/scarica">Busta paga</a><% } %>
+                <% if (p.busta_original_name) { %><a href="/buste/<%= employee.id %>/<%= p.anno %>/<%= p.mese %>/scarica">Busta paga</a><% } %>
               </td>
             </tr>
           <% }) %>

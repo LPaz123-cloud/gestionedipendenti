@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const db = require('../src/db');
+const { pool } = require('../src/db');
 
 const router = express.Router();
 
@@ -9,17 +9,22 @@ router.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
 
-router.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username || '');
+router.post('/login', async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+    const { rows } = await pool.query('SELECT * FROM users WHERE username = $1', [username || '']);
+    const user = rows[0];
 
-  if (!user || !bcrypt.compareSync(password || '', user.password_hash)) {
-    return res.render('login', { error: 'Credenziali non valide.' });
+    if (!user || !bcrypt.compareSync(password || '', user.password_hash)) {
+      return res.render('login', { error: 'Credenziali non valide.' });
+    }
+
+    req.session.userId = user.id;
+    req.session.username = user.username;
+    res.redirect('/');
+  } catch (err) {
+    next(err);
   }
-
-  req.session.userId = user.id;
-  req.session.username = user.username;
-  res.redirect('/');
 });
 
 router.post('/logout', (req, res) => {

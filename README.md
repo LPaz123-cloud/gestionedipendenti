@@ -11,9 +11,28 @@ Gestionale web per la gestione delle assunzioni aziendali: anagrafica candidati/
 - **Buste paga & bonifici**: registrazione mensile di importi, stato pagamento e caricamento del PDF della busta paga.
 - **Login** protetto da password (singolo utente amministratore).
 
+## Come sono salvati i dati
+
+Tutto — anagrafica, checklist, eventi, buste paga e i file caricati (documenti, PDF) — è salvato in un **database Postgres**, tipicamente [Supabase](https://supabase.com) (gratuito). Non viene scritto nulla sul filesystem del server: questo è importante perché molti hosting gratuiti (Render, Railway free tier, Vercel...) hanno un filesystem "effimero" che si azzera ad ogni riavvio/redeploy. Con Postgres esterno i dati restano al sicuro qualunque cosa succeda al server web.
+
 ## Requisiti
 
-- Node.js 22.5 o superiore (usa il modulo nativo `node:sqlite`, nessuna dipendenza da compilare).
+- Node.js 18 o superiore.
+- Un database Postgres. Il modo più semplice è creare un progetto gratuito su [supabase.com](https://supabase.com).
+
+## Configurare Supabase (una tantum)
+
+1. Crea un account su [supabase.com](https://supabase.com) e un nuovo progetto (scegli una password del database e conservala).
+2. Vai su **Project Settings → Database → Connection string**.
+3. Copia la stringa **"Connection pooling"** (modalità *Session*, porta `5432`, oppure *Transaction*, porta `6543`) — è quella compatibile anche con hosting che non supportano IPv6 come Render.
+4. Sostituisci `[YOUR-PASSWORD]` nella stringa con la password del database scelta al punto 1.
+
+Il risultato è qualcosa tipo:
+```
+postgresql://postgres.xxxxxxxx:LaTuaPassword@aws-0-eu-central-1.pooler.supabase.com:5432/postgres
+```
+
+Questa stringa va messa nella variabile `DATABASE_URL`.
 
 ## Avvio in locale
 
@@ -22,13 +41,14 @@ npm install
 cp .env.example .env
 ```
 
-Modifica `.env` con le tue credenziali:
+Modifica `.env` con i tuoi valori:
 
 ```
 PORT=3000
 SESSION_SECRET=una-stringa-lunga-e-casuale
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=scegli-una-password-sicura
+DATABASE_URL=postgresql://...   # la stringa di Supabase
 ```
 
 Poi avvia:
@@ -37,35 +57,28 @@ Poi avvia:
 npm start
 ```
 
-L'app sarà disponibile su `http://localhost:3000`. Al primo avvio viene creato automaticamente l'utente amministratore con le credenziali indicate in `.env`.
+L'app sarà disponibile su `http://localhost:3000`. Al primo avvio vengono creati automaticamente le tabelle nel database, l'utente amministratore e un'azienda di default, usando le variabili di `.env`.
 
-> Le credenziali admin vengono salvate nel database solo al primo avvio. Per cambiarle in seguito, modifica direttamente l'utente nella tabella `users` oppure cancella il file `data/gestionale.db` (perderai tutti i dati) e riavvia con le nuove variabili d'ambiente.
+> Le credenziali admin vengono create nel database **solo la prima volta** che il database è vuoto. Per cambiarle in seguito, modifica la password direttamente nella tabella `users` di Supabase (usando l'SQL Editor) oppure svuota quella tabella e riavvia l'app con le nuove variabili.
 
-## Dati salvati
+## Come hostarlo online (es. Render, gratis)
 
-- `data/gestionale.db` — database SQLite con tutti i dati (aziende, persone, checklist, eventi, buste paga).
-- `uploads/documenti/` — documenti caricati per candidati/dipendenti.
-- `uploads/buste_paga/` — PDF delle buste paga.
-
-Questi percorsi vanno **conservati/backuppati** quando ospiti l'app: sono l'unica copia dei dati.
-
-## Come hostarlo online
-
-Qualsiasi hosting che supporti Node.js va bene. Alcune opzioni semplici:
-
-### Render / Railway (consigliato, gratis per iniziare)
 1. Carica il progetto su un repository GitHub (privato, contiene dati aziendali sensibili).
-2. Crea un nuovo "Web Service" collegato al repository.
-3. Comando di build: `npm install` — comando di avvio: `npm start`.
-4. Imposta le variabili d'ambiente (`SESSION_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`) nel pannello del servizio.
-5. **Importante**: aggiungi un "persistent disk"/volume montato su `/data` e `/uploads` (o l'intera working directory), altrimenti i dati vengono persi ad ogni deploy. Su Render questo si chiama "Disk".
+2. Vai su [render.com](https://render.com) → **New + → Web Service** → collega il repository.
+3. Configurazione:
+   - **Runtime**: Node
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+4. Nella sezione **Environment**, imposta le variabili d'ambiente:
+   - `SESSION_SECRET` → una stringa lunga e casuale
+   - `ADMIN_USERNAME` → il tuo utente
+   - `ADMIN_PASSWORD` → una password sicura
+   - `DATABASE_URL` → la stringa di connessione Supabase (vedi sopra)
+5. **Create Web Service** → il deploy parte da solo, in 2-3 minuti l'app è online.
 
-### VPS proprio (es. Hetzner, DigitalOcean)
-1. Installa Node.js 22+.
-2. Copia il progetto sul server, esegui `npm install --omit=dev` e `npm start` (meglio con un process manager come `pm2` per farlo ripartire in automatico).
-3. Metti un reverse proxy (Nginx/Caddy) davanti con HTTPS (es. Caddy con certificato automatico).
+Non serve **nessun disco persistente**: essendo tutto su Postgres/Supabase, i dati sopravvivono a riavvii, redeploy e al risveglio dal "sleep" del piano gratuito.
 
 ### Note di sicurezza per la produzione
 - Cambia sempre `SESSION_SECRET` e la password admin rispetto ai valori di esempio.
-- Servi l'app sempre dietro HTTPS: le credenziali viaggiano in chiaro su HTTP.
-- Fai backup regolari di `data/gestionale.db` e della cartella `uploads/` (contengono documenti e buste paga).
+- Servi l'app sempre dietro HTTPS (Render lo fa automaticamente).
+- Il piano gratuito di Supabase mette in pausa il database dopo un periodo di inattività prolungato: la prima richiesta dopo la pausa può risultare più lenta mentre si "risveglia", ma i dati non vengono persi.

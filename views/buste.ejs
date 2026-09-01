@@ -73,7 +73,7 @@
           <input type="file" name="busta" accept="application/pdf,image/*" />
         </div>
         <div class="field" style="align-self:end;">
-          <% if (payroll && payroll.busta_filename) { %>
+          <% if (payroll && payroll.busta_original_name) { %>
             <a href="/buste/<%= employee.id %>/<%= anno %>/<%= mese %>/scarica" class="btn btn-secondary btn-sm">Scarica busta attuale</a>
           <% } %>
         </div>

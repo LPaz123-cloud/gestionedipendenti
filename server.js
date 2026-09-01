@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 const methodOverride = require('method-override');
 const path = require('node:path');
 const dayjs = require('dayjs');
@@ -8,6 +9,7 @@ require('dayjs/locale/it');
 dayjs.locale('it');
 
 const { requireAuth } = require('./src/auth');
+const { pool, init } = require('./src/db');
 
 const app = express();
 
@@ -21,6 +23,7 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.use(
   session({
+    store: new pgSession({ pool, tableName: 'session', createTableIfMissing: true }),
     secret: process.env.SESSION_SECRET || 'chiave-di-sviluppo-non-sicura',
     resave: false,
     saveUninitialized: false,
@@ -47,7 +50,20 @@ app.use((req, res) => {
   res.status(404).send('Pagina non trovata');
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Gestionale assunzioni avviato su http://localhost:${PORT}`);
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).send('Si è verificato un errore imprevisto.');
 });
+
+const PORT = process.env.PORT || 3000;
+
+init()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Gestionale assunzioni avviato su http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Errore di avvio: impossibile inizializzare il database.', err);
+    process.exit(1);
+  });
